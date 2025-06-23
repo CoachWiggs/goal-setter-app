@@ -1,3 +1,4 @@
+/* global __firebase_config, __app_id, __initial_auth_token */
 import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
@@ -27,28 +28,31 @@ const Sparkles = ({ className = "w-6 h-6" }) => (
     </svg>
 );
 
+
 // --- Firebase Configuration ---
-// This robust method checks for Canvas, Netlify, and local environments
+// THIS IS THE CORRECTED METHOD FOR NETLIFY AND LOCAL DEVELOPMENT
 let firebaseConfig;
 const appId = (typeof __app_id !== 'undefined' ? __app_id : 'default-goal-setter-app');
 
-// The `__firebase_config` variable is provided in the Canvas environment.
-// `process.env` is used for the Netlify deployment.
-if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+try {
+  // This variable is provided by the Canvas environment
+  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
     firebaseConfig = JSON.parse(__firebase_config);
-} else if (typeof process !== 'undefined' && process.env.REACT_APP_FIREBASE_CONFIG) {
-    firebaseConfig = JSON.parse(process.env.REACT_APP_FIREBASE_CONFIG);
-} else {
-    // Fallback for local development or if keys are missing
-    console.warn("Firebase config not found. Using placeholders. App will not connect to Firebase.");
+  } else {
+    // This is the standard way to access environment variables in a Create React App build (like on Netlify)
     firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID",
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.REACT_APP_FIREBASE_APP_ID,
     };
+  }
+} catch (e) {
+   console.error("Could not parse Firebase config:", e);
+   // Fallback if parsing fails
+   firebaseConfig = { apiKey: "INVALID_CONFIG", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
 }
 
 
