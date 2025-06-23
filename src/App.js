@@ -1,4 +1,3 @@
-/* global __firebase_config, __app_id, __initial_auth_token */
 import React from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
@@ -28,11 +27,21 @@ const Sparkles = ({ className = "w-6 h-6" }) => (
     </svg>
 );
 
-
 // --- Firebase Configuration ---
-const firebaseConfig = typeof __firebase_config !== 'undefined'
-  ? JSON.parse(__firebase_config)
-  : {
+// This robust method checks for Canvas, Netlify, and local environments
+let firebaseConfig;
+const appId = (typeof __app_id !== 'undefined' ? __app_id : 'default-goal-setter-app');
+
+// The `__firebase_config` variable is provided in the Canvas environment.
+// `process.env` is used for the Netlify deployment.
+if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+    firebaseConfig = JSON.parse(__firebase_config);
+} else if (typeof process !== 'undefined' && process.env.REACT_APP_FIREBASE_CONFIG) {
+    firebaseConfig = JSON.parse(process.env.REACT_APP_FIREBASE_CONFIG);
+} else {
+    // Fallback for local development or if keys are missing
+    console.warn("Firebase config not found. Using placeholders. App will not connect to Firebase.");
+    firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
       projectId: "YOUR_PROJECT_ID",
@@ -40,8 +49,8 @@ const firebaseConfig = typeof __firebase_config !== 'undefined'
       messagingSenderId: "YOUR_SENDER_ID",
       appId: "YOUR_APP_ID",
     };
+}
 
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-goal-setter-app';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
